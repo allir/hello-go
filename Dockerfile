@@ -1,10 +1,10 @@
-FROM golang as build
+FROM golang:1 as build
 WORKDIR /go/src/app
 ADD main.go main.go 
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o hello main.go
 
 
-FROM alpine 
+FROM scratch 
 WORKDIR /app
 COPY --from=build /go/src/app/hello .
 EXPOSE 8080
