@@ -5,9 +5,8 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o hello main.go
 
 
 FROM scratch 
-WORKDIR /app
+WORKDIR /hello-go
 COPY --from=build /go/src/app/hello .
 EXPOSE 8080
 ENV HELLO_VAR allir
 CMD ["./hello"]
-

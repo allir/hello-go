@@ -1,22 +1,40 @@
-NS ?= allir
-IMAGE_NAME ?= hello-go
-IMAGE_TAG ?= latest
+BIN_DIR := $(GOPATH)/bin
+SHORT_SHA := $(shell git rev-parse --short HEAD)
+VERSION := $(shell (git describe --tags 2>/dev/null || echo v0.0.0) | cut -c2-)
 
-.PHONY: help
-help: ## This help
-	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+PKGS := $(shell go list ./... | grep -v /vendor)
 
-.DEFAULT_GOAL := help
+.PHONY: clean
+clean:
+	rm -rf ./release
 
-.PHONY: build push release default
-build: Dockerfile ## Build docker image
-	docker build . -t $(NS)/$(IMAGE_NAME):$(IMAGE_TAG)
+.PHONY: test
+test: lint
+	go test $(PKGS)
 
-build-nc: Dockerfile ## Build docker image (No cache)
-	docker build . --no-cache -t $(NS)/$(IMAGE_NAME):$(IMAGE_TAG)
+BIN_DIR := $(GOPATH)/bin
+GOMETALINTER := $(BIN_DIR)/gometalinter
 
-push: ## Push docker image to repository
-	docker push $(NS)/$(IMAGE_NAME):$(IMAGE_TAG)
+$(GOMETALINTER):
+	go get -u github.com/alecthomas/gometalinter
+	gometalinter --install &> /dev/null
 
-release: build push ## Build and Push image to repository
+.PHONY: lint
+lint: $(GOLANGCI-LINT)
+	golangci-lint run --enable gofmt $(PKGS)
 
+BINARY := hello-go
+PLATFORMS := windows linux darwin
+os = $(word 1, $@)
+
+.PHONY: $(PLATFORMS)
+$(PLATFORMS):
+	mkdir -p release
+	GOOS=$(os) GOARCH=amd64 go build -o release/$(BINARY)-$(VERSION)-$(os)-amd64 ./cmd/hello-go
+
+.PHONY: release
+release: windows linux darwin
+
+GOLANGCI-LINT := $(BIN_DIR)/golangci-lint
+$(GOLANGCI-LINT):
+	curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.21.0
