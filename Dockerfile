@@ -1,6 +1,6 @@
 FROM golang:1 as build
 WORKDIR /go/src/app
-ADD main.go main.go 
+ADD cmd/hello-go/main.go main.go 
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o hello main.go
 
 
