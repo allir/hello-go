@@ -29,7 +29,6 @@ os = $(word 1, $@)
 
 .PHONY: $(PLATFORMS)
 $(PLATFORMS):
-	mkdir -p release
 	GOOS=$(os) GOARCH=amd64 go build -o release/$(BINARY)-v$(VERSION)-$(os)-amd64 ./cmd/hello-go
 
 .PHONY: release
