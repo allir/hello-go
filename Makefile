@@ -1,4 +1,5 @@
-BIN_DIR := $(GOPATH)/bin
+BIN_DIR := $(shell go env GOPATH)/bin
+GOLANGCI-LINT := $(BIN_DIR)/golangci-lint
 SHORT_SHA := $(shell git rev-parse --short HEAD)
 VERSION := $(shell (git describe --tags 2>/dev/null || echo v0.0.0) | cut -c2-)
 
@@ -12,28 +13,20 @@ clean:
 test: lint
 	go test $(PKGS)
 
-BIN_DIR := $(GOPATH)/bin
-GOMETALINTER := $(BIN_DIR)/gometalinter
-
-$(GOMETALINTER):
-	go get -u github.com/alecthomas/gometalinter
-	gometalinter --install &> /dev/null
-
 .PHONY: lint
 lint: $(GOLANGCI-LINT)
-	golangci-lint run --enable gofmt $(PKGS)
+	$(GOLANGCI-LINT) run --enable gofmt --skip-dirs-use-default ./... 
 
 BINARY := hello-go
 PLATFORMS := windows linux darwin
-os = $(word 1, $@)
+OS = $(word 1, $@)
 
 .PHONY: $(PLATFORMS)
 $(PLATFORMS):
-	GOOS=$(os) GOARCH=amd64 go build -o release/$(BINARY)-v$(VERSION)-$(os)-amd64 ./cmd/hello-go
+	GOOS=$(OS) GOARCH=amd64 go build -o release/$(BINARY)-v$(VERSION)-$(OS)-amd64 ./cmd/hello-go
 
 .PHONY: release
-release: windows linux darwin
+release: $(PLATFORMS)
 
-GOLANGCI-LINT := $(BIN_DIR)/golangci-lint
 $(GOLANGCI-LINT):
-	curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.21.0
+	curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(BIN_DIR) v1.21.0
