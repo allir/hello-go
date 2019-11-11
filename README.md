@@ -1,4 +1,4 @@
 # hello-go
 
-A simple Go web server
+A simple Go web server and accompanying files.
 

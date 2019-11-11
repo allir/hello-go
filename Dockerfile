@@ -1,12 +1,12 @@
-FROM golang:1 as build
-WORKDIR /go/src/app
-ADD cmd/hello-go/main.go main.go 
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o hello main.go
+FROM golang:1.13 as build
+WORKDIR /go/src/hello-go
+ADD main.go main.go
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-s -w" -a -installsuffix cgo -o hello
 
 
 FROM scratch 
-WORKDIR /hello-go
-COPY --from=build /go/src/app/hello .
+WORKDIR /hello
+COPY --from=build /go/src/hello-go/hello .
 EXPOSE 8080
 ENV HELLO_VAR allir
 CMD ["./hello"]
