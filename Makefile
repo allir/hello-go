@@ -1,7 +1,7 @@
 BIN_DIR := $(shell go env GOPATH)/bin
 GOLANGCI-LINT := $(BIN_DIR)/golangci-lint
 SHORT_SHA := $(shell git rev-parse --short HEAD)
-VERSION := $(shell (git describe --tags 2>/dev/null || echo v0.0.0) | cut -c2-)
+VERSION ?= $(shell (git describe --tags 2>/dev/null || echo v0.0.0) | cut -c2-)
 
 PKGS := $(shell go list ./... | grep -v /vendor)
 
