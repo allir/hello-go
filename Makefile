@@ -1,12 +1,12 @@
-BIN_DIR := $(shell go env GOPATH)/bin
+
+GOPATH := $(shell go env GOPATH)
+BIN_DIR := $(GOPATH)/bin
 
 BINARY := hello-go
 BUILD_ARGS ?= -ldflags "-s -w"
 
 SHORT_SHA := $(shell git rev-parse --short HEAD)
 VERSION ?= $(shell (git describe --tags 2>/dev/null || echo v0.0.0) | cut -c2-)
-
-GOLANGCI-LINT := $(BIN_DIR)/golangci-lint
 
 PKGS := $(shell go list ./... | grep -v /vendor)
 
@@ -57,5 +57,6 @@ docker-release: docker-build ## Push docker image to repository
 	docker push $(DOCKER_REPO):$(VERSION)
 	docker push $(DOCKER_REPO):$(SHORT_SHA)
 
+GOLANGCI-LINT := $(BIN_DIR)/golangci-lint
 $(GOLANGCI-LINT):
-	curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(BIN_DIR) v1.21.0
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint
